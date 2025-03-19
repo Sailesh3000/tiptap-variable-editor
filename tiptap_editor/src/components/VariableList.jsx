@@ -1,4 +1,3 @@
-// src/components/VariableList.jsx
 import React, { useState, useEffect, useRef, forwardRef } from 'react';
 
 const VariableList = forwardRef((props, ref) => {
@@ -9,7 +8,10 @@ const VariableList = forwardRef((props, ref) => {
     const item = props.items[index];
 
     if (item) {
-      props.command({ id: item.id, label: item.label });
+      props.command({
+        id: item.id,
+        label: item.label
+      });
     }
   };
 
@@ -30,8 +32,8 @@ const VariableList = forwardRef((props, ref) => {
   }, [props.items]);
 
   useEffect(() => {
-    if (listRef.current && listRef.current.children[selectedIndex]) {
-      listRef.current.children[selectedIndex].scrollIntoView({ block: 'nearest' });
+    if (listRef.current && listRef.current.children[selectedIndex + 1]) {
+      listRef.current.children[selectedIndex + 1].scrollIntoView({ block: 'nearest' });
     }
   }, [selectedIndex]);
 
@@ -58,22 +60,68 @@ const VariableList = forwardRef((props, ref) => {
     onKeyDown,
   }));
 
-  if (props.items.length === 0) {
-    return null;
-  }
+  // Group items by category if they have one
+  const groupedItems = props.items.reduce((acc, item) => {
+    const category = item.category || 'Variables';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(item);
+    return acc;
+  }, {});
 
-  return (
-    <div className="variable-list" ref={listRef}>
-      {props.items.map((item, index) => (
-        <button
-          className={`variable-item ${index === selectedIndex ? 'is-selected' : ''}`}
-          key={item.id}
+  const renderGroups = () => {
+    const groups = Object.keys(groupedItems);
+    if (groups.length <= 1) {
+      return props.items.map((item, index) => (
+        <div 
+          key={index}
+          className={`item ${index === selectedIndex ? 'is-selected' : ''}`}
           onClick={() => selectItem(index)}
           onMouseEnter={() => setSelectedIndex(index)}
         >
-          {item.label}
-        </button>
-      ))}
+          <span className="item-label">{item.label}</span>
+          <span className="item-id">{item.id}</span>
+        </div>
+      ));
+    }
+
+    let flatIndex = 0;
+    return groups.map(group => (
+      <React.Fragment key={group}>
+        <div className="group-header">{group}</div>
+        {groupedItems[group].map((item) => {
+          const currentIndex = flatIndex++;
+          return (
+            <div 
+              key={currentIndex}
+              className={`item ${currentIndex === selectedIndex ? 'is-selected' : ''}`}
+              onClick={() => selectItem(currentIndex)}
+              onMouseEnter={() => setSelectedIndex(currentIndex)}
+            >
+              <span className="item-label">{item.label}</span>
+              <span className="item-id">{item.id}</span>
+            </div>
+          );
+        })}
+      </React.Fragment>
+    ));
+  };
+
+  if (props.items.length === 0) {
+    return (
+      <div className="items-list empty">
+        No variables found
+      </div>
+    );
+  }
+
+  return (
+    <div className="items-list" ref={listRef}>
+      <div className="list-header">
+        {props.title || 'Select a variable'}
+      </div>
+      {renderGroups()}
     </div>
   );
 });
