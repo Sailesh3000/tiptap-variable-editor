@@ -21,15 +21,7 @@ A modern React application that provides a rich text editor with variable insert
    git clone https://github.com/Sailesh3000/tiptap-variable-editor.git
    cd tiptap-variable-editor
    ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. Install required packages:
+2. Install required packages:
    ```bash
    npm install
    ```
